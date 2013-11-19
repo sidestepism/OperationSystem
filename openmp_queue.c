@@ -12,14 +12,14 @@
 
 /* FIFO キューのノード */
 typedef struct queue_node {
-  struct queue_node * next;	/* 次のノードへのポインタ */
-  int val;			/* 格納された値 */
+  struct queue_node * next; /* 次のノードへのポインタ */
+  int val;      /* 格納された値 */
 } * queue_node_t;
 
 /* FIFO キュー全体の構造(先頭ノードと終端ノードへのポインタ) */
 typedef struct queue {
-  queue_node_t head;		/* 先頭 */
-  queue_node_t tail;		/* 終端 */
+  queue_node_t head;    /* 先頭 */
+  queue_node_t tail;    /* 終端 */
 } * queue_t;
 
 void die(char * s) {
@@ -69,7 +69,7 @@ int deq(queue_t q) {
 
 
 void * thread_func1(int idx, queue_t q, char * a,
-		    int n_items, int n_enq_threads, int n_deq_threads) {
+        int n_items, int n_enq_threads, int n_deq_threads) {
   if (idx < n_enq_threads) {
     /* 挿入するスレッド. n_enq_threads スレッドで分担して, 
        0, 1, 2, ..., n_items-1 を一度ずつ挿入する */
@@ -91,9 +91,9 @@ void * thread_func1(int idx, queue_t q, char * a,
     int i;
     for (i = my_items_beg; i < my_items_end; i++) {
       int x = deq(q);
-      assert(x != -1);	      /* (i) 空であってはいけない */
+      assert(x != -1);        /* (i) 空であってはいけない */
       assert(a[x] == 0); /* (ii) 同じ要素が2度とり出されてはいけない */
-      a[x] = 1;	      /* xが取り出されたと記録 */
+      a[x] = 1;       /* xが取り出されたと記録 */
     }
   }
   return 0;
@@ -109,18 +109,20 @@ double cur_time() {
 int main(int argc, char ** argv)
 {
   int n_items       = (argc > 1 ? atoi(argv[1]) : 100000); /* 挿入/削除される要素数 */
-  int n_enq_threads = (argc > 2 ? atoi(argv[2]) : 1);	   /* 挿入役のスレッド数 */
-  int n_deq_threads = (argc > 3 ? atoi(argv[3]) : 1);	   /* 削除役のスレッド数 */
+  int n_enq_threads = (argc > 2 ? atoi(argv[2]) : 1);    /* 挿入役のスレッド数 */
+  int n_deq_threads = (argc > 3 ? atoi(argv[3]) : 1);    /* 削除役のスレッド数 */
   assert(n_enq_threads < n_threads);
   int n_deq_threads = n_threads - n_enq_threads;
   queue_t q = new_queue();
   char * a = calloc(1, n_items);
   int i;
   double t0 = cur_time();
-#pragma omp parallel
-  thread_func1(omp_get_thread_num(), 
-	       q, a, n_items, n_enq_threads, n_deq_threads);
-
+  // #pragma omp parallel
+  // thread_func1(omp_get_thread_num(), 
+  //        q, a, n_items, n_enq_threads, n_deq_threads);
+  for(int i = 0; i < n_enq_threads + n_deq_threads; i++)
+    thread_func1(i, 
+           q, a, n_items, n_enq_threads, n_deq_threads);
   /* すべての要素が取り出されているかチェック */
   for (i = 0; i < n_items; i++) {
     assert(a[i] == 1);
