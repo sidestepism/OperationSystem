@@ -9,25 +9,25 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#define N_THREADS 5
+#define N_THREADS 30
 
-int g;
+int c = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 typedef struct thread_arg {
   pthread_t tid;
-  int* y;
 } * thread_arg_t;
 
 void * thread_func(void * _arg) {
   thread_arg_t arg = _arg;
-  int x;
-  static int s;
-
   printf("thread id = %ld\n", arg->tid);
-  printf("g = %x\n", &g);
-  printf("s = %x\n", &s);
-  printf("x = %x\n", &x);
-  printf("y = %x\n", &arg->y);
+  int i, ret;  
+  for(i = 0; i < 100000; i++){
+    ret = pthread_mutex_lock(&mutex);
+    c ++;
+    pthread_mutex_unlock(&mutex);
+  }
   return 0;
 }
 
@@ -39,13 +39,15 @@ double cur_time() {
 
 int main()
 {
-  int y;
   struct thread_arg args[N_THREADS];
   double t0 = cur_time();
   int i;
+
+  pthread_mutex_init(&mutex, NULL);
+
+  printf("c = %d\n", c);
   /* スレッドを N_THREADS 個作る */
   for (i = 0; i < N_THREADS; i++) {
-    args[i].y = &y;
     pthread_create(&args[i].tid, NULL, 
            thread_func, (void *)&args[i]);
   }
@@ -53,6 +55,7 @@ int main()
   for (i = 0; i < N_THREADS; i++) {
     pthread_join(args[i].tid, NULL);
   }
+  printf("c = %d\n", c);
   double t1 = cur_time();
   printf("OK: elapsed time: %f\n", t1 - t0);
   return 0;
