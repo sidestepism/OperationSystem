@@ -24,9 +24,9 @@ void * thread_func(void * _arg) {
   printf("thread id = %ld\n", arg->tid);
   int i, ret;  
   for(i = 0; i < 100000; i++){
-    ret = pthread_mutex_lock(&mutex);
-    c ++;
-    pthread_mutex_unlock(&mutex);
+    // ret = pthread_mutex_lock(&mutex);
+    __sync_fetch_and_add(&c, 1); 
+    // pthread_mutex_unlock(&mutex);
   }
   return 0;
 }
@@ -43,7 +43,7 @@ int main()
   double t0 = cur_time();
   int i;
 
-  pthread_mutex_init(&mutex, NULL);
+  // pthread_mutex_init(&mutex, NULL);
 
   printf("c = %d\n", c);
   /* スレッドを N_THREADS 個作る */
