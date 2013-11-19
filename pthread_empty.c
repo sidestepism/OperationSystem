@@ -11,13 +11,23 @@
 
 #define N_THREADS 5
 
+int g;
+
 typedef struct thread_arg {
   pthread_t tid;
+  int* y;
 } * thread_arg_t;
 
 void * thread_func(void * _arg) {
   thread_arg_t arg = _arg;
+  int x;
+  static int s;
+
   printf("thread id = %ld\n", arg->tid);
+  printf("g = %x\n", &g);
+  printf("s = %x\n", &s);
+  printf("x = %x\n", &x);
+  printf("y = %x\n", &arg->y);
   return 0;
 }
 
@@ -29,11 +39,13 @@ double cur_time() {
 
 int main()
 {
+  int y;
   struct thread_arg args[N_THREADS];
   double t0 = cur_time();
   int i;
   /* スレッドを N_THREADS 個作る */
   for (i = 0; i < N_THREADS; i++) {
+    args[i].y = &y;
     pthread_create(&args[i].tid, NULL, 
            thread_func, (void *)&args[i]);
   }
